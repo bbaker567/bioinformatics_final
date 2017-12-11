@@ -1,5 +1,6 @@
 setwd("~/Desktop/Bioinformatics_Final/")
-fasta_subsample("QQ_metagenome.fna", 1000, "QQ_subset_1000_R_2.fna")
+full_metagenome <- read.fasta("QQ_metagenome.fna")
+QQ_subset_500_5 <- fasta_subsample("QQ_metagenome.fna", 500, "QQ_subset_500_R_5.fna")
 genome_results <- read.csv(file = "59_db_results.tsv", header = T)
 
 high_coverage <- subset(x= genome_results, genome_results$qcovs >= 70)
