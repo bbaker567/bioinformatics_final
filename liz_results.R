@@ -21,5 +21,7 @@ for(x in 1:result_length){
 }
 
 sum(new_df_results$Frequency, na.rm = T)
+pie(new_df_results$Frequency, labels = new_df_results$Species)
 
-?subset
+new_df_results$Domain <- NA
+
