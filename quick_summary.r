@@ -1,6 +1,6 @@
 setwd("~/Desktop/Bioinformatics_Final/")
 full_metagenome <- read.fasta("QQ_metagenome.fna")
-QQ_subset_500_10 <- fasta_subsample("QQ_metagenome.fna", 500, "QQ_subset_500_R_10.fna")
+QQ_subset_500_20 <- fasta_subsample("QQ_metagenome.fna", 500, "QQ_subset_500_R_20.fna")
 genome_results <- read.csv(file = "59_db_results.tsv", header = T)
 
 high_coverage <- subset(x= genome_results, genome_results$qcovs >= 70)
@@ -26,3 +26,4 @@ for(x in result_length){
   test_sequence <- read.GenBank(test_accession)
   test_species <- attr(test_sequence, "species")
 }
+

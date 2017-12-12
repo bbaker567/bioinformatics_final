@@ -3,7 +3,7 @@ library(ape)
 library(seqinr)
 library(taxize)
 
-genome_results <- read.csv(file = "results_QQ_subset_500_R_2.csv", header = F)
+genome_results <- read.csv(file = "subsets_1_to_6.csv", header = F)
 colnames(genome_results) <- c("qseqid", "sseqid", "pident", "length", "mismatch", "gapopen", "qstart", "qend", "sstart", "send", "evalue", "bitscore")
 
 high_coverage <- subset(genome_results, length >= 210)
@@ -19,6 +19,9 @@ for(x in 1:result_length){
   accession <- new_df_results[x, "Accession"]
   sequence <- read.GenBank(accession)
   species <- attr(sequence, "species")
+  species <- gsub("_", " ", species)
+  species <- gsub("\\[", "", species)
+  species <- gsub("]", "", species)
   new_df_results[x, "Species"] <- species
   
   domain_list <- classification(species, db = 'ncbi')
@@ -26,8 +29,12 @@ for(x in 1:result_length){
   new_df_results[x, "Domain"] <- unlisted_domain[2]
 }
 
-sum(new_df_results$Frequency, na.rm = T)
 pie(new_df_results$Frequency, labels = new_df_results$Species)
 
-domain_breakdown_table <- table(new_df_results$Domain)
-pie(domain_breakdown_table)
+pie(table(new_df_results$Domain))
+
+samples_blasted <- 500
+QQ_read_total <- 4000000
+total_sample_proportion <- 500/4000000
+total_sample_identified <- sum(new_df_results$Frequency, na.rm = T)
+id_total_sample_proportion <- (total_sample_identified / samples_blasted) * 100
