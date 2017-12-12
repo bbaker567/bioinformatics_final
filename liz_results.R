@@ -1,6 +1,7 @@
 setwd("~/Desktop/Bioinformatics_Final/")
 library(ape)
 library(seqinr)
+library(taxize)
 
 genome_results <- read.csv(file = "results_QQ_subset_500_R_2.csv", header = F)
 colnames(genome_results) <- c("qseqid", "sseqid", "pident", "length", "mismatch", "gapopen", "qstart", "qend", "sstart", "send", "evalue", "bitscore")
@@ -12,16 +13,21 @@ colnames(df_results) <- c("Accession", "Frequency")
 df_results$Species <- NA
 new_df_results <- df_results[-c(which(df_results$Frequency == 0)), ] 
 result_length <- nrow(new_df_results)
+new_df_results$Domain <- NA
 
 for(x in 1:result_length){
   accession <- new_df_results[x, "Accession"]
   sequence <- read.GenBank(accession)
   species <- attr(sequence, "species")
   new_df_results[x, "Species"] <- species
+  
+  domain_list <- classification(species, db = 'ncbi')
+  unlisted_domain <- unlist(domain_list)
+  new_df_results[x, "Domain"] <- unlisted_domain[2]
 }
 
 sum(new_df_results$Frequency, na.rm = T)
 pie(new_df_results$Frequency, labels = new_df_results$Species)
 
-new_df_results$Domain <- NA
-
+domain_breakdown_table <- table(new_df_results$Domain)
+pie(domain_breakdown_table)
