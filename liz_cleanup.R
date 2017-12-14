@@ -1,3 +1,7 @@
+#This file is for testing. See liz_functions.R for completed functions.
+setwd("~/Desktop/Bioinformatics_Final/")
+
+
 fasta_subsample <- function(big_fasta, new_length, new_file){
   library(seqinr)
   long_reads <- read.fasta(big_fasta, as.string = T)
@@ -24,34 +28,167 @@ metagenome_sample_blast <- function(csv_file, read_length, minimum_coverage){
   
   new_df_results <- df_results[-c(which(df_results$Frequency == 0)), ] 
   result_length <- nrow(new_df_results)
-  new_df_results$Domain <- NA
+  new_df_results$Top_Classification <- NA
+  new_df_results$Super_Kingdom <- NA
+  new_df_results$Phylum <- NA
+  new_df_results$Class <- NA
+  new_df_results$Order <- NA
+  new_df_results$Family <- NA
+  new_df_results$Genus <- NA
   
   for(x in 1:result_length){
     accession <- new_df_results[x, "Accession"]
     sequence <- read.GenBank(accession)
     species <- attr(sequence, "species")
-    species <- gsub("_", " ", species)
-    species <- gsub("-", " ", species)
     species <- gsub("\\[", "", species)
     species <- gsub("]", "", species)
     new_df_results[x, "Species"] <- species
     
-    domain_list <- classification(species, db = 'ncbi')
-    unlisted_domain <- unlist(domain_list)
-    new_df_results[x, "Domain"] <- unlisted_domain[2]
+    full_classification <- classification(species, db = 'ncbi')
+    unlisted_classification <- unlist(full_classification)
+    new_df_results[x, "Top_Classification"] <- unlisted_classification[1]
+    new_df_results[x, "Super_Kingdom"] <- unlisted_classification[2]
+    new_df_results[x, "Phylum"] <- unlisted_classification[3]
+    new_df_results[x, "Class"] <- unlisted_classification[4]
+    new_df_results[x, "Order"] <- unlisted_classification[5]
+    new_df_results[x, "Family"] <- unlisted_classification[6]
+    new_df_results[x, "Genus"] <- unlisted_classification[7]
+    
   }
   
   return(new_df_results)
 }
 
-QQ_1_to_6 <- metagenome_sample_blast("subsets_1_to_6.csv", 301, .7)
+species_name_cleanup <- function(formatted_df){
+  df_length <- nrow(formatted_df)
+  
+  for(x in 1:df_length){
+    species <- formatted_df[x, "Species"]
+    species <- gsub("_", " ", species)
+    #species <- gsub("\\s[[:graph:]]*[0-9]+.*", "", species)
+    #species <- gsub("\\ssp\\.", "", species)
+    #species <- gsub("\\s[A-Z]{2,}", "", species)
+    
+    formatted_df[x, "Species"] <- species
+  }
+  
+  return(formatted_df)
+}
 
-pie(new_df_results$Frequency, labels = new_df_results$Species)
+superkingdom_stacked_plot <- function(metagenome_df, super_kingdom, division, main_title, y_label){
+  library(ggplot2)
+  
+  only_super_kingdom <- subset(metagenome_df, Super_Kingdom == super_kingdom)
+  sorted_table <- as.data.frame(sort(table(only_super_kingdom[, division]), decreasing = F))
+  
+  stacked_bar_plot <- ggplot(sorted_table, aes(x="", y=Freq, fill=Var1)) +
+    geom_bar(width = 1, stat = "identity") + labs(title=main_title) +
+    xlab("") + ylab(y_label)
+  
+  return(stacked_bar_plot)
+}
 
-pie(table(new_df_results$Domain))
+condense_species <- function(metagenome_df){
+  ordered_metagenome_df <- metagenome_df[order(metagenome_df$Species), ]
+  ordered_metagenome_df <- species_name_cleanup(ordered_metagenome_df)
+  df_loop_length <- nrow(ordered_metagenome_df)
+  
+  for(x in 1:df_loop_length){
+    if(is.na(ordered_metagenome_df[x, "Species"] == ordered_metagenome_df[(x + 1), "Species"])){
+      break
+    }
+    while(ordered_metagenome_df[x, "Species"] == ordered_metagenome_df[(x + 1), "Species"]){
+      ordered_metagenome_df[x, "Frequency"] = ordered_metagenome_df[x, "Frequency"] + ordered_metagenome_df[x + 1, "Frequency"]
+      ordered_metagenome_df <- ordered_metagenome_df[-(x + 1), ]
+    }
+  }
+  return(ordered_metagenome_df)
+}
 
-samples_blasted <- 500
-QQ_read_total <- 4000000
-total_sample_proportion <- 500/4000000
-total_sample_identified <- sum(new_df_results$Frequency, na.rm = T)
-id_total_sample_proportion <- (total_sample_identified / samples_blasted) * 100
+
+test_plot <- superkingdom_stacked_plot(QQ_1_to_10, "Bacteria", "Phylum", "Representation of Bacterial Phyla in QQ Hot Spring", "Phyla Abundance")
+test_plot
+bacteria_phyla_stacked_plot(QQ_1_to_10, "Representation of Bacterial Phyla in QQ Hot Spring", "Phyla Abundance")
+QQ_1_to_10 <- metagenome_sample_blast("QQ_1_to_10.csv", 301, .7)
+format_QQ_1_to_9 <- species_name_cleanup(QQ_1_to_9)
+
+cells_only <- subset(QQ_1_to_9, Top_Classification == "cellular organisms")
+pie(table(cells_only$Super_Kingdom))
+
+bacteria <- subset(QQ_1_to_9, Super_Kingdom == "Bacteria")
+pie(table(bacteria$Phylum))
+
+archaea <- subset(QQ_1_to_9, Super_Kingdom == "Archaea")
+pie(table(archaea$Phylum))
+
+bacteria_phyla <- as.data.frame(table(bacteria$Phylum))
+bacteria_ordered <- bacteria_phyla[order(bacteria_phyla$Freq), ]
+stacked_bar_plot <- ggplot(bacteria_phyla[order(bacteria_phyla$Freq), ], aes(x="", y=Freq, fill=Var1))+
+  geom_bar(width = 1, stat = "identity")
+
+stacked_bar_plot 
+
+bacteria_phyla$Var1 <- factor(bacteria_phyla$Var1, levels = rev(levels(bacteria_phyla$Var1)))
+ggplot(bacteria_phyla, aes(fill = Var1, order = -as.numeric(Freq))) 
+  + geom_bar()
+
+ggplot(bacteria_phyla, aes(Var1, Freq, fill=Var1)) + geom_bar(stat="identity")
+
+ggplot(bacteria_phyla, aes(Var1, Freq, group = Freq, stat='histogram')) +
+  geom_(aes(fill = Var1)) +
+  coord_flip()
+
+ggplot((bacteria_phyla), aes(x=Var1, y=Freq, fill=Var1))+
+  geom_bar(stat="identity") + labs(title="Original dataframe")
+
+ggplot(bacteria_ordered[order(bacteria_phyla$Freq), ], aes(x="", y=Freq, fill=Var1))+
+  geom_bar(width = 1, stat = "identity") + labs(title="Original dataframe")
+
+ggplot(test, aes(x = "", y = Freq, fill = Var1)) +
+  geom_bar(stat = "identity")
+
+test <- bacteria_ordered[order(-bacteria_phyla$Freq),]
+test
+
+test_2 <- as.data.frame(sort(table(bacteria$Phylum), decreasing = F))
+
+ggplot(test_2, aes(x="", y=Freq, fill=Var1))+
+  geom_bar(width = 1, stat = "identity") + labs(title="Original dataframe")
+
+x=1
+new_QQ_1_to_10[x, "Species"] == new_QQ_1_to_10[x + 1, "Species"]
+new_QQ_1_to_10[-(x + 1), ]
+
+new_QQ_1_to_10 <- QQ_1_to_10
+new_QQ_1_to_10 <- QQ_1_to_10[order(QQ_1_to_10$Species), ]
+new_QQ_1_to_10 <- species_name_cleanup(new_QQ_1_to_10)
+df_loop_length <- nrow(new_QQ_1_to_10)
+test <- condense_species(new_QQ_1_to_10)
+
+for(x in 1:df_loop_length){
+  if(is.na(new_QQ_1_to_10[x, "Species"] == new_QQ_1_to_10[(x + 1), "Species"])){
+    break
+  }
+  while(new_QQ_1_to_10[x, "Species"] == new_QQ_1_to_10[(x + 1), "Species"]){
+    new_QQ_1_to_10[x, "Frequency"] = new_QQ_1_to_10[x, "Frequency"] + new_QQ_1_to_10[x + 1, "Frequency"]
+    new_QQ_1_to_10 <- new_QQ_1_to_10[-(x + 1), ]
+  }
+}
+
+new_QQ_1_to_10[30, "Species"] == new_QQ_1_to_10[33, "Species"]
+
+summed <- rowSums(zscore[, c(1, 2, 3, 5)])
+
+
+bacteria_phyla_stacked_plot <- function(metagenome_df, main_title, y_label){
+  library(ggplot2)
+  
+  bacteria <- subset(metagenome_df, Super_Kingdom == "Bacteria")
+  sorted_table <- as.data.frame(sort(table(bacteria$Phylum), decreasing = F))
+  
+  stacked_bar_plot <- ggplot(sorted_table, aes(x="", y=Freq, fill=Var1))+
+    geom_bar(width = 1, stat = "identity") + labs(title=main_title) +
+    xlab("") + ylab(y_label)
+  
+  return(stacked_bar_plot)
+}
