@@ -12,7 +12,7 @@ fasta_subsample <- function(big_fasta, new_length, new_file){
 #This function reads a CSV file with columns arising from standard tabular output (outfmt 6) 
 #from command-line blastn.
 #It returns a data frame with columns for accession number, frequency,
-#species, and domain.
+#species, and further columns for taxonomic groupings.
 metagenome_sample_blast <- function(csv_file, read_length, minimum_coverage){
   library(ape)
   library(seqinr)
@@ -68,9 +68,9 @@ species_name_cleanup <- function(formatted_df){
   for(x in 1:df_length){
     species <- formatted_df[x, "Species"]
     species <- gsub("_", " ", species)
-    species <- gsub("\\s[[:graph:]]*[0-9]+.*", "", species)
-    species <- gsub("\\ssp\\.", "", species)
-    species <- gsub("\\s[A-Z]{2,}", "", species)
+    #species <- gsub("\\s[[:graph:]]*[0-9]+.*", "", species)
+    #species <- gsub("\\ssp\\.", "", species)
+    #species <- gsub("\\s[A-Z]{2,}", "", species)
     
     formatted_df[x, "Species"] <- species
   }
@@ -98,13 +98,23 @@ condense_species <- function(metagenome_df){
 }
 
 #This function produces a stacked barplot for a given super kingdom and division, such as Phylum or Order.
+#The height of the bars refers to the number of total hits per given division, not the number of species
+#within it.
 superkingdom_stacked_plot <- function(metagenome_df, super_kingdom, division, main_title, y_label){
   library(ggplot2)
   
   only_super_kingdom <- subset(metagenome_df, Super_Kingdom == super_kingdom)
-  sorted_table <- as.data.frame(sort(table(only_super_kingdom[, division]), decreasing = F))
+  abundancy_df <- as.data.frame(sort(table(only_super_kingdom[, division]), decreasing = F))
   
-  stacked_bar_plot <- ggplot(sorted_table, aes(x="", y=Freq, fill=Var1)) +
+  for(x in 1:nrow(only_super_kingdom)){
+    one_division <- only_super_kingdom[x, division]
+    abundancy_row <- which(abundancy_df$Var1 == one_division)
+    abundancy_df[abundancy_row, "Freq"] <- abundancy_df[abundancy_row, "Freq"] + only_super_kingdom[x, "Frequency"]
+  }
+  
+  abundancy_df$Var1 <- factor(abundancy_df$Var1, levels = abundancy_df$Var1[order(abundancy_df$Freq)])
+  
+  stacked_bar_plot <- ggplot(abundancy_df, aes(x="", y=Freq, fill=Var1, order=Var1)) +
     geom_bar(width = 1, stat = "identity") + labs(title=main_title) +
     xlab("") + ylab(y_label)
   

@@ -79,9 +79,17 @@ superkingdom_stacked_plot <- function(metagenome_df, super_kingdom, division, ma
   library(ggplot2)
   
   only_super_kingdom <- subset(metagenome_df, Super_Kingdom == super_kingdom)
-  sorted_table <- as.data.frame(sort(table(only_super_kingdom[, division]), decreasing = F))
+  abundancy_df <- as.data.frame(sort(table(only_super_kingdom[, division]), decreasing = F))
   
-  stacked_bar_plot <- ggplot(sorted_table, aes(x="", y=Freq, fill=Var1)) +
+  for(x in 1:nrow(only_super_kingdom)){
+    one_division <- only_super_kingdom[x, division]
+    abundancy_row <- which(abundancy_df$Var1 == one_division)
+    abundancy_df[abundancy_row, "Freq"] <- abundancy_df[abundancy_row, "Freq"] + only_super_kingdom[x, "Frequency"]
+  }
+
+  abundancy_df$Var1 <- factor(abundancy_df$Var1, levels = abundancy_df$Var1[order(abundancy_df$Freq)])
+  
+  stacked_bar_plot <- ggplot(abundancy_df, aes(x="", y=Freq, fill=Var1, order=Var1)) +
     geom_bar(width = 1, stat = "identity") + labs(title=main_title) +
     xlab("") + ylab(y_label)
   
@@ -105,9 +113,10 @@ condense_species <- function(metagenome_df){
   return(ordered_metagenome_df)
 }
 
-
 test_plot <- superkingdom_stacked_plot(QQ_1_to_10, "Bacteria", "Phylum", "Representation of Bacterial Phyla in QQ Hot Spring", "Phyla Abundance")
 test_plot
+
+?factor
 bacteria_phyla_stacked_plot(QQ_1_to_10, "Representation of Bacterial Phyla in QQ Hot Spring", "Phyla Abundance")
 QQ_1_to_10 <- metagenome_sample_blast("QQ_1_to_10.csv", 301, .7)
 format_QQ_1_to_9 <- species_name_cleanup(QQ_1_to_9)
@@ -192,3 +201,21 @@ bacteria_phyla_stacked_plot <- function(metagenome_df, main_title, y_label){
   
   return(stacked_bar_plot)
 }
+
+bacteria <- subset(new_QQ_1_to_10, Super_Kingdom == "Bacteria")
+sorted_table <- as.data.frame(sort(table(bacteria[, "Phylum"]), decreasing = F))
+
+division_names <- sorted_table$Var1
+abundancy_df <- as.data.frame(division_names)
+names(abundancy_df)[names(abundancy_df) == '`sorted_table$Var1`'] <- 'Division'
+abundancy_df$Count <- 0
+
+for(x in 1:nrow(bacteria)){
+  phylum <- bacteria[x, "Phylum"]
+  abundancy_row <- which(abundancy_df$division_names == phylum)
+  abundancy_df[abundancy_row, "Count"] <- abundancy_df[abundancy_row, "Count"] + bacteria[x, "Frequency"]
+}
+
+stacked_bar_plot <- ggplot(sorted_table, aes(x="", y=Freq, fill=Var1)) +
+  geom_bar(width = 1, stat = "identity") + labs(title="main_title") +
+  xlab("") + ylab("y_label")
