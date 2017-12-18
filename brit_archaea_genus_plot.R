@@ -1,4 +1,4 @@
-#Read in blast results file, add column headers
+#Read in .csv file, add headers
 QQ_DF_raw <- read.csv("QQ_blastn_results_brit", sep = "\t", header = F, 
                     col.names = c("qseqid", "sseqid", "pident", "length", 
                                   "mismatch", "gapopen", "qstart", "qend", "sstart", 
@@ -8,6 +8,7 @@ QQ_DF_raw <- read.csv("QQ_blastn_results_brit", sep = "\t", header = F,
 QQ_DF_subest <- subset(QQ_DF_raw, QQ_DF_raw$length >=210)
 sseqid <- QQ_DF_subest$sseqid
 
+
 #Plot of number of hits per species
 library(ggplot2)
 ggplot(data = QQ_DF_subest) +
@@ -16,4 +17,6 @@ ggplot(data = QQ_DF_subest) +
  theme(legend.position = "bottom") +
   ylab("Number of blast Hits") +
   xlab("Species") + 
-  labs(title = "Number of blast hits per Species") 
+  labs(title = "Number of blast hits per Species") +
+  scale_fill_discrete(guide = guide_legend(title = "Species Legend", 
+                                           keywidth = 0.5, keyheight = 0.5, ncol = 11)) 
