@@ -3,9 +3,12 @@
 fasta_subsample <- function(big_fasta, new_length, new_file){
   library(seqinr)
   long_reads <- read.fasta(big_fasta, as.string = T)
+  
+  #This takes a random sample of the reads in the file, according to initial parameters
   subset <- sample(long_reads, new_length)
   subset_unlist <- unlist(subset)
   
+  #This outputs a new FASTA file with the sampled reads
   write.fasta(sequences = subset, names = names(subset_unlist), file.out = new_file)
 }
 
@@ -21,6 +24,7 @@ metagenome_sample_blast <- function(csv_file, read_length, minimum_coverage){
   genome_results <- read.csv(csv_file, header = F)
   colnames(genome_results) <- c("qseqid", "sseqid", "pident", "length", "mismatch", "gapopen", "qstart", "qend", "sstart", "send", "evalue", "bitscore")
   
+  #This eliminates matches with low coverage, which are of lower quality than long coverage matches.
   high_coverage <- subset(genome_results, length >= (minimum_coverage*read_length))
   tabled_results <- table(high_coverage$sseqid)
   
@@ -38,6 +42,8 @@ metagenome_sample_blast <- function(csv_file, read_length, minimum_coverage){
   new_df_results$Family <- NA
   new_df_results$Genus <- NA
   
+  #This acquires the match's accession number, looks up the species name, and stores 
+  #phylogenetic information about each species.
   for(x in 1:result_length){
     accession <- new_df_results[x, "Accession"]
     sequence <- read.GenBank(accession)
@@ -55,7 +61,6 @@ metagenome_sample_blast <- function(csv_file, read_length, minimum_coverage){
     new_df_results[x, "Order"] <- unlisted_classification[5]
     new_df_results[x, "Family"] <- unlisted_classification[6]
     new_df_results[x, "Genus"] <- unlisted_classification[7]
-    
   }
   
   return(new_df_results)
@@ -85,6 +90,8 @@ condense_species <- function(metagenome_df){
   ordered_metagenome_df <- species_name_cleanup(ordered_metagenome_df)
   df_loop_length <- nrow(ordered_metagenome_df)
   
+  #This preserves the frequency counts of species, regardless of how many different accession numbers 
+  #showed up per species. 
   for(x in 1:df_loop_length){
     if(is.na(ordered_metagenome_df[x, "Species"] == ordered_metagenome_df[(x + 1), "Species"])){
       break

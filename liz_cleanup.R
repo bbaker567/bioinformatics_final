@@ -120,7 +120,7 @@ superkingdom_pie_chart <- function(metagenome_df, main_title){
   return(stacked_bar_plot)
 }
 
-superkingdom_pie_chart(QQ_1_to_10, "Main")
+superkingdom_pie_chart(QQ_1_to_10, "Microbe Respresentation in QQ Hot Spring by Superkingdom")
 
 condense_species <- function(metagenome_df){
   ordered_metagenome_df <- metagenome_df[order(metagenome_df$Species), ]
@@ -142,10 +142,13 @@ condense_species <- function(metagenome_df){
 test_plot <- superkingdom_stacked_plot(QQ_1_to_10, "Bacteria", "Phylum", "Representation of Bacterial Phyla in QQ Hot Spring", "Phyla Abundance")
 test_plot
 
+QQ_species_condensed <- condense_species(new_QQ_1_to_10)
+
 ?factor
 bacteria_phyla_stacked_plot(QQ_1_to_10, "Representation of Bacterial Phyla in QQ Hot Spring", "Phyla Abundance")
 QQ_1_to_10 <- metagenome_sample_blast("QQ_1_to_10.csv", 301, .7)
-format_QQ_1_to_9 <- species_name_cleanup(QQ_1_to_9)
+result_sum <- sum(QQ_1_to_10$Frequency)
+result_sum
 
 cells_only <- subset(QQ_1_to_9, Top_Classification == "cellular organisms")
 pie(table(cells_only$Super_Kingdom))
