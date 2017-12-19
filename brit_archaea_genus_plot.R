@@ -14,9 +14,7 @@ library(ggplot2)
 ggplot(data = QQ_DF_subest) +
   geom_bar(mapping = aes(x = sseqid, fill = sseqid), colour = "black") +
   coord_flip() +
- theme(legend.position = "bottom") +
   ylab("Number of blast Hits") +
   xlab("Genus") + 
   labs(title = "Number of BLAST hits per Archaeal Genus") +
-  scale_fill_discrete(guide = guide_legend(title = "Genus Legend", 
-                                           keywidth = 0.5, keyheight = 0.5, ncol = 11)) 
+  theme(legend.position="none")
