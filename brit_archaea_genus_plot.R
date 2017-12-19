@@ -16,7 +16,7 @@ ggplot(data = QQ_DF_subest) +
   coord_flip() +
  theme(legend.position = "bottom") +
   ylab("Number of blast Hits") +
-  xlab("Species") + 
-  labs(title = "Number of blast hits per Species") +
-  scale_fill_discrete(guide = guide_legend(title = "Species Legend", 
+  xlab("Genus") + 
+  labs(title = "Number of BLAST hits per Archaeal Genus") +
+  scale_fill_discrete(guide = guide_legend(title = "Genus Legend", 
                                            keywidth = 0.5, keyheight = 0.5, ncol = 11)) 
