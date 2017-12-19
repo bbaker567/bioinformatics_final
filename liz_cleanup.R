@@ -142,6 +142,9 @@ condense_species <- function(metagenome_df){
 test_plot <- superkingdom_stacked_plot(QQ_1_to_10, "Bacteria", "Phylum", "Representation of Bacterial Phyla in QQ Hot Spring", "Phyla Abundance")
 test_plot
 
+test_plot2 <- superkingdom_stacked_plot(QQ_1_to_10, "Bacteria", "Order", "Representation of Bacterial Orders in QQ Hot Spring", "Order Abundance")
+test_plot2
+
 QQ_species_condensed <- condense_species(new_QQ_1_to_10)
 
 ?factor
