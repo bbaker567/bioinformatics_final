@@ -8,6 +8,9 @@ QQ_DF_raw <- read.csv("QQ_blastn_results_brit", sep = "\t", header = F,
 QQ_DF_subest <- subset(QQ_DF_raw, QQ_DF_raw$length >=210)
 sseqid <- QQ_DF_subest$sseqid
 
+#Makes a data frame of the frequency of Genus hits
+tabled_results <- table( QQ_DF_subest$sseqid)
+genus_frequency <- as.data.frame(tabled_results, stringsAsFactors=FALSE)
 
 #Plot of number of hits per species
 library(ggplot2)
